@@ -10,11 +10,10 @@ var(
 )
 
 func Connect(){
-	d, err := gorm.Open("mysql","root:root@tcp(localhost:3306)/go_bookstore?charset=utf8&parseTime=True&loc=Local")
+	d, err := gorm.Open("mysql","root:1234@tcp(127.0.0.1:3306)/go_bookstore?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		panic("failed to connect database")
 	}	
-
 	db =d
 }
 

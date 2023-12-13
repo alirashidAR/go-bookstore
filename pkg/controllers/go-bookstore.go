@@ -1,13 +1,14 @@
 package controllers
 
-import(
+import (
 	"encoding/json"
-	"github.com/gorilla/mux"
+	"fmt"
 	"net/http"
 	"strconv"
-	"fmt"
-	"github.com/aliRashidAR/go-bookstore/pkg/utils"
-	"github.com/aliRashidAR/go-bookstore/pkg/models"
+
+	"github.com/alirashidAR/go-bookstore/pkg/utils"
+	"github.com/alirashidAR/go-bookstore/pkg/models"
+	"github.com/gorilla/mux"
 )
 
 var NewBook models.Book
@@ -23,6 +24,70 @@ func GetBook(w http.ResponseWriter, r* http.Request){
 
 func GetBookById(w http.ResponseWriter, r * http.Request){
 	vars := mux.Vars(r)
-	bookId = vars["bookId"]
+	bookId := vars["bookId"]
+	ID, err := strconv.ParseInt(bookId,0,0)
+	if err != nil{
+		fmt.Println("Error while parsing")
+	}
+
+	bookDetails , _ := models.GetBookById(ID) // since we do not need the db , we pass _ in the second parameter
 	
+	res, _ := json.Marshal(bookDetails) // json.Marshall returns res and error
+	w.Header().Set("Content-Type","pkglication/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+
+}
+
+
+func CreateBook(w http.ResponseWriter, r *http.Request){
+	// We get the body request and parse it to the NewBook struct for the database to understand
+	CreateBook := &models.Book{}
+	utils.ParseBody(r, CreateBook)
+	b := CreateBook.CreateBook()
+	res, _ := json.Marshal(b)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
+
+
+func DeleteBook( w http.ResponseWriter, r * http.Request){
+	vars := mux.Vars(r)
+	bookId := vars["BookId"]
+	ID , err := strconv.ParseInt(bookId,0,0)
+	if err != nil{
+		fmt.Println("Error while parsing")
+	}
+	book := models.DeleteBook(ID)
+	res, _ := json.Marshal(book)
+	w.Header().Set("Content-Type","pkglication/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
+}
+
+func UpdateBook(w http.ResponseWriter, r* http.Request){
+	var updateBook = &models.Book{}
+	utils.ParseBody(r, updateBook)
+	vars := mux.Vars(r)
+	bookId := vars["BookId"]
+	ID, err := strconv.ParseInt(bookId,0,0)
+	if err != nil{
+		fmt.Println("Error while parsing")
+	}
+	bookDetails, db := models.GetBookById(ID)
+	if updateBook.Name != ""{
+		bookDetails.Name = updateBook.Name
+	}
+	if updateBook.Author != ""{
+		bookDetails.Author = updateBook.Author
+	}
+	if updateBook.Publication != ""{
+		bookDetails.Publication = updateBook.Publication
+	}
+	db.Save(&bookDetails)
+	res, _ := json.Marshal(bookDetails)
+	w.Header().Set("Content-Type","pkglication/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(res)
 }
